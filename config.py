@@ -133,8 +133,13 @@ INTERNATIONAL_COMPETITIONS = {
     "Copa Libertadores": 13,
 }
 
-# Historical seasons to scrape (Free tier: 2022-2024 only)
-SEASONS_TO_SCRAPE = [2022, 2023, 2024]
+# Historical seasons to scrape
+# Extended to cover 22 years of data (2004-2025) for comprehensive historical analysis
+SEASONS_TO_SCRAPE = [
+    2025, 2024, 2023, 2022,  # Recent seasons
+    2021, 2020, 2019, 2018, 2017, 2016, 2015,  # Mid-range
+    2014, 2013, 2012, 2011, 2010, 2009, 2008, 2007, 2006, 2005, 2004  # Historical
+]
 
 # Output directories
 OUTPUT_DIR = "data"

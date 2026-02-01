@@ -27,10 +27,12 @@ from config import (
     STATISTICS_OUTPUT_DIR,
 )
 
-# Historical seasons to scrape (Pro plan has access to these)
+# Historical seasons to scrape (Pro plan has access back to 2004, forward to 2025)
 # Prioritize recent seasons first (more relevant for prediction)
-# We already have 2022, 2023, 2024 - so skip those
-HISTORICAL_SEASONS = [2021, 2020, 2019, 2018, 2017, 2016, 2015]
+# Full range: 2004-2025 (22 years total)
+# Import from config for consistency
+from config import SEASONS_TO_SCRAPE
+HISTORICAL_SEASONS = SEASONS_TO_SCRAPE  # [2025, 2024, 2023, ..., 2005, 2004]
 
 # Progress file
 HISTORICAL_PROGRESS_FILE = f"{OUTPUT_DIR}/historical_scrape_progress.json"
@@ -55,8 +57,9 @@ class ProgressTracker:
             except Exception:
                 pass
         return {
-            "completed_teams": [],  # Teams fully scraped
+            "completed_teams": [],  # Teams fully scraped for ALL seasons
             "scraped_seasons": {},  # {team_name: {player_id: [seasons]}}
+            "new_teams_progress": {},  # {team_name: {squad_fetched: bool, seasons_done: [seasons]}}
             "api_calls_made": 0,
             "started_at": datetime.now().isoformat(),
             "last_updated": datetime.now().isoformat()
@@ -94,9 +97,43 @@ class ProgressTracker:
     def add_api_calls(self, count: int):
         self.progress["api_calls_made"] += count
     
+    def is_new_team(self, team_name: str) -> bool:
+        """Check if this is a new team (no existing CSV data)."""
+        safe_name = team_name.replace(" ", "_").lower()
+        stats_file = f"{STATISTICS_OUTPUT_DIR}/{safe_name}_player_statistics.csv"
+        return not os.path.exists(stats_file) or os.path.getsize(stats_file) < 10
+    
+    def get_new_team_progress(self, team_name: str) -> dict:
+        """Get progress for a new team."""
+        if "new_teams_progress" not in self.progress:
+            self.progress["new_teams_progress"] = {}
+        return self.progress["new_teams_progress"].get(team_name, {
+            "squad_fetched": False,
+            "seasons_done": []
+        })
+    
+    def set_new_team_squad_fetched(self, team_name: str):
+        """Mark that squad has been fetched for a new team."""
+        if "new_teams_progress" not in self.progress:
+            self.progress["new_teams_progress"] = {}
+        if team_name not in self.progress["new_teams_progress"]:
+            self.progress["new_teams_progress"][team_name] = {"squad_fetched": False, "seasons_done": []}
+        self.progress["new_teams_progress"][team_name]["squad_fetched"] = True
+        self.save()
+    
+    def add_new_team_season_done(self, team_name: str, season: int):
+        """Mark a season as done for a new team."""
+        if "new_teams_progress" not in self.progress:
+            self.progress["new_teams_progress"] = {}
+        if team_name not in self.progress["new_teams_progress"]:
+            self.progress["new_teams_progress"][team_name] = {"squad_fetched": False, "seasons_done": []}
+        if season not in self.progress["new_teams_progress"][team_name]["seasons_done"]:
+            self.progress["new_teams_progress"][team_name]["seasons_done"].append(season)
+    
     def get_stats(self) -> str:
+        total_teams = 46  # WC 2026 teams
         return (
-            f"Teams completed: {len(self.progress['completed_teams'])}/32 | "
+            f"Teams completed: {len(self.progress['completed_teams'])}/{total_teams} | "
             f"API calls: {self.progress['api_calls_made']}"
         )
 
@@ -170,6 +207,38 @@ def merge_and_save_stats(team_name: str, new_stats_df: pd.DataFrame, team_id: in
     return combined_df
 
 
+def fetch_and_save_squad(scraper: WorldCup2026Scraper, team_id: int, team_name: str) -> pd.DataFrame:
+    """Fetch squad for a new team and save to CSV."""
+    print(f"  👥 Fetching squad for {team_name} (ID: {team_id})...")
+    
+    squad_data = scraper.api.get_squad(team_id)
+    
+    players = []
+    if squad_data:
+        team_info = squad_data[0]
+        for player in team_info.get("players", []):
+            players.append({
+                "player_id": player.get("id"),
+                "player_name": player.get("name"),
+                "team_id": team_id,
+                "team_name": team_name,
+                "age": player.get("age"),
+                "number": player.get("number"),
+                "position": player.get("position"),
+                "photo": player.get("photo"),
+            })
+    
+    df = pd.DataFrame(players)
+    
+    # Save to CSV
+    safe_name = team_name.replace(" ", "_").lower()
+    output_path = f"{PLAYERS_OUTPUT_DIR}/{safe_name}_squad.csv"
+    df.to_csv(output_path, index=False)
+    print(f"  ✅ Saved {len(df)} players to {output_path}")
+    
+    return df
+
+
 def scrape_historical_for_team(
     scraper: WorldCup2026Scraper,
     team_id: int,
@@ -179,6 +248,7 @@ def scrape_historical_for_team(
 ) -> tuple[pd.DataFrame, int, bool]:
     """
     Scrape historical seasons for a single team.
+    Handles both existing teams (missing some seasons) and new teams (no data at all).
     Returns: (DataFrame with stats, api_calls_made, quota_exhausted)
     """
     
@@ -187,44 +257,72 @@ def scrape_historical_for_team(
         print(f"  ⏭️ Team already completed in previous run")
         return pd.DataFrame(), 0, False
     
-    # Get existing data info (from CSV files, not progress tracker)
-    existing_seasons = get_existing_seasons(team_name)
+    # Check if this is a NEW team (no existing data)
+    is_new_team = progress.is_new_team(team_name)
+    api_calls_made = 0
     
-    # Load squad
     safe_name = team_name.replace(" ", "_").lower()
     squad_file = f"{PLAYERS_OUTPUT_DIR}/{safe_name}_squad.csv"
     
+    if is_new_team:
+        print(f"  🆕 NEW TEAM - no existing data found")
+        new_team_progress = progress.get_new_team_progress(team_name)
+        
+        # Fetch squad if not already done
+        if not new_team_progress.get("squad_fetched") or not os.path.exists(squad_file) or os.path.getsize(squad_file) < 10:
+            try:
+                squad_df = fetch_and_save_squad(scraper, team_id, team_name)
+                api_calls_made += 1
+                progress.set_new_team_squad_fetched(team_name)
+                if squad_df.empty:
+                    print(f"  ⚠️ No squad data available for {team_name}")
+                    progress.mark_team_completed(team_name)  # Mark as complete (nothing to scrape)
+                    return pd.DataFrame(), api_calls_made, False
+            except Exception as e:
+                print(f"  ❌ Error fetching squad: {e}")
+                return pd.DataFrame(), api_calls_made, False
+        
+        # For new teams, scrape ALL seasons (not just missing)
+        seasons_already_done = new_team_progress.get("seasons_done", [])
+        new_seasons = [s for s in seasons_to_scrape if s not in seasons_already_done]
+        existing_seasons = []
+        print(f"  📊 Will scrape all {len(new_seasons)} seasons for new team")
+        print(f"     Seasons already done: {seasons_already_done if seasons_already_done else 'none'}")
+    else:
+        # EXISTING team - get existing data info
+        existing_seasons = get_existing_seasons(team_name)
+        new_seasons = [s for s in seasons_to_scrape if s not in existing_seasons]
+    
+    # Load squad
     if not os.path.exists(squad_file):
         print(f"  ❌ No squad file found for {team_name}")
-        return pd.DataFrame(), 0, False
+        return pd.DataFrame(), api_calls_made, False
     
     # Check file size (empty placeholder files are 1 byte)
     if os.path.getsize(squad_file) < 10:
         print(f"  ❌ Squad file is empty for {team_name}")
-        return pd.DataFrame(), 0, False
+        return pd.DataFrame(), api_calls_made, False
     
     try:
         squad_df = pd.read_csv(squad_file)
         if squad_df.empty or 'player_id' not in squad_df.columns:
             print(f"  ❌ Squad file has no player data for {team_name}")
-            return pd.DataFrame(), 0, False
+            return pd.DataFrame(), api_calls_made, False
     except Exception as e:
         print(f"  ❌ Error reading squad file: {e}")
-        return pd.DataFrame(), 0, False
-    
-    # Filter out seasons we already have in CSV
-    new_seasons = [s for s in seasons_to_scrape if s not in existing_seasons]
+        return pd.DataFrame(), api_calls_made, False
     
     if not new_seasons:
         print(f"  ⏭️ All requested seasons already in CSV: {existing_seasons}")
         progress.mark_team_completed(team_name)
-        return pd.DataFrame(), 0, False
+        return pd.DataFrame(), api_calls_made, False
     
     print(f"  📊 Scraping seasons {new_seasons} for {len(squad_df)} players")
-    print(f"     Already have in CSV: {existing_seasons}")
+    if existing_seasons:
+        print(f"     Already have in CSV: {existing_seasons}")
     
     all_player_stats = []
-    api_calls_made = 0
+    # api_calls_made already initialized above
     quota_exhausted = False
     
     for idx, player in squad_df.iterrows():
@@ -352,6 +450,10 @@ def scrape_historical_for_team(
                 # Mark season as done for this player
                 progress.mark_player_season(team_name, player_id, season)
                 
+                # Also track for new teams
+                if is_new_team:
+                    progress.add_new_team_season_done(team_name, season)
+                
             except Exception as e:
                 print(f"  ⚠️ Error fetching stats for {player_name} season {season}: {e}")
         
@@ -362,12 +464,18 @@ def scrape_historical_for_team(
         if api_calls_made % 20 == 0:
             progress.add_api_calls(20)
             progress.save()
+            
+        # If quota exhausted, break out of player loop immediately
+        if quota_exhausted:
+            break
     
     # Don't mark team as completed here - do it after merge succeeds in main()
     
     progress.add_api_calls(api_calls_made % 20)  # Add remaining calls
     progress.save()
     
+    # IMPORTANT: Return whatever data we have, even if partial
+    # The caller will save it to CSV
     if all_player_stats:
         return pd.DataFrame(all_player_stats), api_calls_made, quota_exhausted
     return pd.DataFrame(), api_calls_made, quota_exhausted
@@ -434,22 +542,32 @@ def main():
             
             total_api_calls += api_calls
             
-            # Merge with existing data
+            # Merge with existing data (even if partial due to quota)
             if not new_stats_df.empty:
                 merge_and_save_stats(team_name, new_stats_df, team_id)
-                # Only mark as completed after successful merge
-                progress.mark_team_completed(team_name)
-                print(f"  ✅ Team marked as completed")
-            elif progress.is_team_completed(team_name):
-                # Already completed before, just skipped
-                pass
+                print(f"  💾 Data saved to CSV")
+            
+            # Only mark team as completed if NOT interrupted by quota
+            if not quota_exhausted:
+                if not new_stats_df.empty:
+                    progress.mark_team_completed(team_name)
+                    print(f"  ✅ Team marked as completed")
+                elif progress.is_team_completed(team_name):
+                    # Already completed before, just skipped
+                    pass
+                else:
+                    # No new data scraped (all seasons already in CSV)
+                    progress.mark_team_completed(team_name)
+                    print(f"  ✅ Team marked as completed (all seasons already present)")
             else:
-                # No new data scraped (maybe all seasons already in CSV)
-                progress.mark_team_completed(team_name)
+                # Quota exhausted mid-team - save partial progress but don't mark complete
+                print(f"  ⏸️ Partial progress saved for {team_name}. Will resume next run.")
+                progress.save()  # Ensure progress is saved immediately
             
             if quota_exhausted:
                 print(f"\n⏸️ Stopping due to low quota. Run again tomorrow to continue.")
                 print(f"   Progress saved. {progress.get_stats()}")
+                progress.save()  # Final save before exit
                 break
                 
         except KeyboardInterrupt:
