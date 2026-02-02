@@ -131,7 +131,7 @@ class ProgressTracker:
             self.progress["new_teams_progress"][team_name]["seasons_done"].append(season)
     
     def get_stats(self) -> str:
-        total_teams = 46  # WC 2026 teams
+        total_teams = 42  # WC 2026 confirmed qualified teams
         return (
             f"Teams completed: {len(self.progress['completed_teams'])}/{total_teams} | "
             f"API calls: {self.progress['api_calls_made']}"

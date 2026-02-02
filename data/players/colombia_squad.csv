@@ -1,0 +1,54 @@
+player_id,player_name,team_id,team_name,age,number,position,photo
+424006,A. Hainikoye,1505,Colombia,21.0,16,Goalkeeper,https://media.api-sports.io/football/players/424006.png
+143652,Y. Babari,1505,Colombia,32.0,21,Goalkeeper,https://media.api-sports.io/football/players/143652.png
+387661,I. Kanta,1505,Colombia,26.0,1,Goalkeeper,https://media.api-sports.io/football/players/387661.png
+369856,M. Tandja,1505,Colombia,29.0,22,Goalkeeper,https://media.api-sports.io/football/players/369856.png
+494705,M. Abdouramane,1505,Colombia,23.0,13,Defender,https://media.api-sports.io/football/players/494705.png
+587354,Adamou Abraham,1505,Colombia,23.0,13,Defender,https://media.api-sports.io/football/players/587354.png
+295223,R. Alhassane,1505,Colombia,23.0,2,Defender,https://media.api-sports.io/football/players/295223.png
+270815,P. Boueye,1505,Colombia,22.0,4,Defender,https://media.api-sports.io/football/players/270815.png
+112148,Boureima Abdoulaye Katakoré Amadou,1505,Colombia,32.0,15,Defender,https://media.api-sports.io/football/players/112148.png
+558463,A. Camara,1505,Colombia,23.0,5,Defender,https://media.api-sports.io/football/players/558463.png
+131543,Y. Diori,1505,Colombia,28.0,18,Defender,https://media.api-sports.io/football/players/131543.png
+297671,A. Djibo,1505,Colombia,27.0,21,Defender,https://media.api-sports.io/football/players/297671.png
+291480,I. Djibrilla,1505,Colombia,29.0,11,Defender,https://media.api-sports.io/football/players/291480.png
+587355,Moussa Harou,1505,Colombia,,25,Defender,https://media.api-sports.io/football/players/587355.png
+404666,A. Hassane,1505,Colombia,22.0,14,Defender,https://media.api-sports.io/football/players/404666.png
+587356,Abdoul Jalil Mamane,1505,Colombia,29.0,4,Defender,https://media.api-sports.io/football/players/587356.png
+587357,Theodore Jules,1505,Colombia,26.0,24,Defender,https://media.api-sports.io/football/players/587357.png
+587358,Abdoul Rafiu Kassali,1505,Colombia,27.0,6,Defender,https://media.api-sports.io/football/players/587358.png
+135799,O. Sako,1505,Colombia,29.0,3,Defender,https://media.api-sports.io/football/players/135799.png
+587359,Laouali Salaou,1505,Colombia,28.0,15,Defender,https://media.api-sports.io/football/players/587359.png
+184968,H. Adamou,1505,Colombia,25.0,19,Midfielder,https://media.api-sports.io/football/players/184968.png
+140893,V. Adebayor,1505,Colombia,29.0,10,Midfielder,https://media.api-sports.io/football/players/140893.png
+587360,Abdel Ahamat,1505,Colombia,18.0,23,Midfielder,https://media.api-sports.io/football/players/587360.png
+293728,M. Amadou Sabo,1505,Colombia,21.0,21,Midfielder,https://media.api-sports.io/football/players/293728.png
+533510,R. Assane,1505,Colombia,24.0,5,Midfielder,https://media.api-sports.io/football/players/533510.png
+575410,O. Badamassi,1505,Colombia,28.0,12,Midfielder,https://media.api-sports.io/football/players/575410.png
+587361,Oumarou Bilal,1505,Colombia,,21,Midfielder,https://media.api-sports.io/football/players/587361.png
+424507,S. Danja,1505,Colombia,20.0,7,Midfielder,https://media.api-sports.io/football/players/424507.png
+587362,Abdourahamane Djibo,1505,Colombia,19.0,14,Midfielder,https://media.api-sports.io/football/players/587362.png
+587363,Ibrahim Djingarey,1505,Colombia,,18,Midfielder,https://media.api-sports.io/football/players/587363.png
+587364,Adamou Ibrahim,1505,Colombia,31.0,20,Midfielder,https://media.api-sports.io/football/players/587364.png
+587365,Ousseini Mani Balla,1505,Colombia,,26,Midfielder,https://media.api-sports.io/football/players/587365.png
+126500,A. Muhammad,1505,Colombia,30.0,14,Midfielder,https://media.api-sports.io/football/players/126500.png
+296865,Moussa Kassa Moudou,1505,Colombia,26.0,8,Midfielder,https://media.api-sports.io/football/players/296865.png
+587366,Hassane Moussa,1505,Colombia,20.0,9,Midfielder,https://media.api-sports.io/football/players/587366.png
+571823,A. Moutari,1505,Colombia,31.0,20,Midfielder,https://media.api-sports.io/football/players/571823.png
+609083,Y. Oumarou,1505,Colombia,32.0,6,Midfielder,https://media.api-sports.io/football/players/609083.png
+201945,A. Sabo,1505,Colombia,25.0,8,Midfielder,https://media.api-sports.io/football/players/201945.png
+587367,Rachid Sama Moussa Abdoul,1505,Colombia,21.0,25,Midfielder,https://media.api-sports.io/football/players/587367.png
+135138,Boubacar Haïnikoye Soumana,1505,Colombia,27.0,11,Midfielder,https://media.api-sports.io/football/players/135138.png
+1515,N. Yakubu,1505,Colombia,25.0,4,Midfielder,https://media.api-sports.io/football/players/1515.png
+587368,Yacouba Ali,1505,Colombia,33.0,19,Attacker,https://media.api-sports.io/football/players/587368.png
+587369,Kader Djibo Abdoul,1505,Colombia,34.0,14,Attacker,https://media.api-sports.io/football/players/587369.png
+424515,A. Goumey,1505,Colombia,20.0,11,Attacker,https://media.api-sports.io/football/players/424515.png
+143659,B. Goumey,1505,Colombia,25.0,17,Attacker,https://media.api-sports.io/football/players/143659.png
+424508,H. Ibrahim,1505,Colombia,19.0,9,Attacker,https://media.api-sports.io/football/players/424508.png
+587370,Ibrahim Issa,1505,Colombia,,11,Attacker,https://media.api-sports.io/football/players/587370.png
+587371,Ismael Issoufou,1505,Colombia,,27,Attacker,https://media.api-sports.io/football/players/587371.png
+587372,Chamsoudine Loukmane Ali,1505,Colombia,27.0,9,Attacker,https://media.api-sports.io/football/players/587372.png
+587373,Razak Mounkaila Abdoul,1505,Colombia,,11,Attacker,https://media.api-sports.io/football/players/587373.png
+483352,M. Pape,1505,Colombia,21.0,23,Attacker,https://media.api-sports.io/football/players/483352.png
+294349,D. Sosah,1505,Colombia,27.0,7,Attacker,https://media.api-sports.io/football/players/294349.png
+621214,M. Yacouba,1505,Colombia,31.0,21,Attacker,https://media.api-sports.io/football/players/621214.png

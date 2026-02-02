@@ -26,9 +26,6 @@ wheels/
 .installed.cfg
 *.egg
 
-# Data files (can be large)
-data/
-
 # IDE
 .idea/
 .vscode/
